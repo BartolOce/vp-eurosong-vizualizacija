@@ -6,7 +6,7 @@ Interaktivna web-vizualizacija rezultata **finala Eurosonga od 2016. do 2023.**
 zemlje dominiraju, kako im rezultati variraju kroz godine te postoje li
 zanimljive veze između pojedinih pokazatelja.
 
-🔗 **Demo uživo:** _(dodati nakon postavljanja na GitHub Pages)_
+🔗 **Demo uživo:** https://bartoloce.github.io/vp-eurosong-vizualizacija/
 
 ## Što prikazuje
 
