@@ -485,9 +485,15 @@ body {
 .line-legend-chips {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 4px 8px;
   margin-top: 8px;
   font-size: 11px;
+  /* Stalna visina (~2 reda) — dodavanje/uklanjanje oznaka ne mijenja visinu
+     područja grafa iznad. Ako oznaka ima previše, legenda se skrola. */
+  height: 48px;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .line-chip {
