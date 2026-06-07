@@ -1,0 +1,780 @@
+:root {
+  /* Pozadina / paneli — meka topla bjelina (manje "kliničko" od čisto bijelog) */
+  --bg: #f7f6f3;
+  --panel: #ffffff;
+  --panel-2: #f1efea;
+  --text: #1c1917;
+  --muted: #6b6967;
+  --border: #e7e4dd;
+  --grid: #ece9e3;
+
+  /* Akcenti — vibrantni Eurovision-ish (živo narančasta + duboko plava) */
+  --accent: #ea580c; /* orange-600 — bar fill, hover, glavna marka */
+  --accent-soft: rgba(234, 88, 12, 0.12); /* hover backgrounds */
+  --accent-2: #1d4ed8; /* blue-700 — chip / selected bar */
+  --accent-2-soft: rgba(29, 78, 216, 0.12);
+
+  /* Pomoćne */
+  --positive: #15803d;
+  --negative: #b91c1c;
+  --no-data: #d8dde5;
+
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 4px 12px rgba(28, 25, 23, 0.06);
+
+  /* Krivulja olakšavanja — usklađena s d3.easeCubicOut */
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.topbar {
+  padding: 24px 32px 8px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+}
+
+.topbar .subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  padding: 16px 32px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.control label {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.control select,
+.scatter-controls select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.year-range {
+  min-width: 260px;
+}
+
+.countries {
+  min-width: 320px;
+  flex: 1;
+  max-width: 520px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.chips-empty {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 2px 6px;
+  font-style: italic;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 2px 8px;
+  background: var(--accent);
+  color: white;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.chip-color {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.chip button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 50%;
+}
+
+.chip button:hover {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.dual-slider {
+  position: relative;
+  height: 20px;
+}
+
+/* Vidljiva siva linija — sama je sebi element, neovisno o slider trackovima.
+   Centrirana vertikalno u 20px kontejneru pomoću top:50% + translateY.       */
+.dual-slider .slider-track-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  background: var(--panel-2);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Oba inputa su 20px visoki i preklapaju se. Trackovi su 20px-visoki ali
+   potpuno transparentni — vidljivu liniju daje .slider-track-bg iznad.       */
+.dual-slider input[type='range'] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.dual-slider input[type='range']::-webkit-slider-runnable-track {
+  height: 20px;
+  background: transparent;
+  border: none;
+}
+
+.dual-slider input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px; /* (20 - 16) / 2 — centrira thumb u 20px tracku */
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+}
+
+.dual-slider input[type='range']::-moz-range-track {
+  height: 20px;
+  background: transparent;
+  border: none;
+}
+
+.dual-slider input[type='range']::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+}
+
+.reset {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.reset:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px 32px 32px;
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-header h2 {
+  margin: 0;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.toggle:hover span {
+  color: var(--text);
+}
+
+.toggle input:disabled + span {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chart {
+  position: relative;
+  height: 420px;
+  width: 100%;
+}
+
+.scatter-tabs {
+  display: inline-flex;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.scatter-tab {
+  background: transparent;
+  border: none;
+  font: inherit;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+
+.scatter-tab:hover {
+  color: var(--text);
+}
+
+.scatter-tab.active {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.footer {
+  padding: 12px 32px 24px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* D3 axes */
+.axis path,
+.axis line {
+  stroke: var(--grid);
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.gridline line {
+  stroke: var(--grid);
+  stroke-dasharray: 2 3;
+}
+
+.gridline path {
+  display: none;
+}
+
+/* Map */
+.country {
+  stroke: #ffffff;
+  stroke-width: 0.6;
+  transition: opacity 120ms ease;
+  cursor: pointer;
+}
+
+.country.no-data {
+  fill: var(--no-data) !important;
+  cursor: default;
+}
+
+.country:hover {
+  stroke: var(--text);
+  stroke-width: 1.4;
+}
+
+.country.no-data:hover {
+  stroke: var(--no-data);
+  stroke-width: 0.6;
+}
+
+.country.selected {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+/* Bar */
+.bar {
+  fill: var(--accent);
+  cursor: pointer;
+}
+
+.bar.selected {
+  fill: var(--accent-2);
+}
+
+.bar:hover {
+  fill: #fb923c; /* orange-400 — svijetliji za hover osjećaj */
+}
+
+/* Line */
+.line {
+  fill: none;
+  stroke-width: 1.6;
+}
+
+.line.selected {
+  stroke-width: 2.8;
+}
+
+.line.dim {
+  opacity: 0.12;
+}
+
+.pt {
+  cursor: pointer;
+  stroke: var(--panel);
+  stroke-width: 1;
+  transition: stroke-width 150ms var(--ease-out);
+}
+
+.pt:hover {
+  stroke: var(--text);
+  stroke-width: 1.8;
+}
+
+.pt.selected {
+  stroke: var(--text);
+  stroke-width: 1.5;
+}
+
+.pt.dim {
+  opacity: 0.18;
+}
+
+.miss {
+  cursor: pointer;
+  stroke: var(--panel);
+  stroke-width: 0.5;
+}
+
+.miss.selected {
+  stroke: var(--text);
+  stroke-width: 1;
+}
+
+.line-svg-wrap {
+  flex: 1;
+  min-height: 0;
+}
+
+.line-legend-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 8px;
+  font-size: 11px;
+}
+
+.line-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.line-chip:hover {
+  border-color: var(--text);
+}
+
+.line-chip.selected {
+  background: var(--text);
+  color: var(--panel);
+  border-color: var(--text);
+}
+
+.line-chip.dim {
+  opacity: 0.35;
+}
+
+.line-chip .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Scatter */
+.dot {
+  cursor: pointer;
+  fill-opacity: 0.75;
+  stroke: rgba(15, 23, 42, 0.15);
+  stroke-width: 0.5;
+  transition:
+    stroke-width 150ms var(--ease-out),
+    fill-opacity 150ms var(--ease-out);
+}
+
+.dot:hover {
+  stroke-width: 1.5;
+  stroke: var(--text);
+  fill-opacity: 1;
+}
+
+.dot.selected {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  fill-opacity: 1;
+}
+
+.dot.dim {
+  opacity: 0.18;
+}
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  box-shadow:
+    0 6px 16px rgba(28, 25, 23, 0.12),
+    0 1px 3px rgba(28, 25, 23, 0.08);
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 150ms var(--ease-out),
+    transform 150ms var(--ease-out);
+  z-index: 100;
+  max-width: 260px;
+}
+
+.tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tooltip strong {
+  color: var(--accent);
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+  height: 100%;
+}
+
+/* ===========================================================================
+   Responzivne prilagodbe
+   =========================================================================== */
+
+/* Tableti — sve u 1 stupcu, sitne korekcije */
+@media (max-width: 980px) {
+  .topbar {
+    padding: 20px 20px 8px;
+  }
+
+  .topbar h1 {
+    font-size: 20px;
+  }
+
+  .controls {
+    padding: 12px 20px;
+    gap: 12px;
+  }
+
+  .grid {
+    padding: 12px 20px 24px;
+    gap: 12px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .chart {
+    height: 360px;
+  }
+}
+
+/* Telefoni — kompaktiji, veći touch targeti */
+@media (max-width: 640px) {
+  .topbar {
+    padding: 16px 14px 6px;
+  }
+
+  .topbar h1 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .topbar .subtitle {
+    font-size: 12px;
+  }
+
+  .controls {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .control,
+  .control.year-range,
+  .control.countries {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+  }
+
+  /* Veći touch targeti za select i gumb */
+  .control select,
+  .reset {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .reset {
+    width: 100%;
+  }
+
+  .grid {
+    padding: 10px 14px 24px;
+  }
+
+  .card {
+    padding: 10px 12px 12px;
+  }
+
+  .card h2 {
+    font-size: 12px;
+  }
+
+  .chart {
+    height: 300px;
+  }
+
+  /* Veći slider thumb za prst */
+  .dual-slider {
+    height: 28px;
+  }
+
+  .dual-slider input[type='range'] {
+    height: 28px;
+  }
+
+  .dual-slider input[type='range']::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: 3px;
+  }
+
+  .dual-slider input[type='range']::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .dual-slider .slider-track-bg {
+    height: 6px;
+    margin-top: -3px;
+  }
+
+  /* Scatter tabovi se prelome u 2 reda */
+  .scatter-tabs {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .scatter-tab {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  /* Chip targeti veći za touch */
+  .chip {
+    padding: 4px 6px 4px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .chip button {
+    font-size: 16px;
+    padding: 2px 6px;
+    min-width: 24px;
+    min-height: 24px;
+  }
+
+  /* Card header skladnije na mobitelu */
+  .card-header {
+    align-items: flex-start;
+  }
+
+  .toggle {
+    font-size: 12px;
+  }
+
+  .toggle input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Tooltip uži, manji font, dovoljno spreman za touch viewport */
+  .tooltip {
+    max-width: 220px;
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
+  /* Footer manji */
+  .footer {
+    padding: 10px 14px 20px;
+    font-size: 11px;
+  }
+}
+
+/* Vrlo uski ekrani — još kompaktije */
+@media (max-width: 380px) {
+  .topbar h1 {
+    font-size: 16px;
+  }
+
+  .chart {
+    height: 260px;
+  }
+
+  .scatter-tab {
+    font-size: 10px;
+    padding: 6px 4px;
+  }
+}

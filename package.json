@@ -1,0 +1,22 @@
+{
+  "name": "eurosong-vizualizacija",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Interaktivna vizualizacija rezultata Eurosonga 2016.–2023. (D3 + Vite)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "d3": "^7.9.0",
+    "topojson-client": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "typescript": "^6.0.3",
+    "vite": "^5.4.10"
+  }
+}

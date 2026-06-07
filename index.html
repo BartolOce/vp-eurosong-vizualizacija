@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Interaktivna vizualizacija rezultata finala Eurosonga 2016.–2023. — karta Europe, top zemlje, plasmani kroz godine, scatter usporedba metrika. Izrađeno s D3.js."
+    />
+    <meta name="theme-color" content="#ea580c" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Eurosong &mdash; Vizualizacija podataka</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Eurosong &mdash; vizualizacija rezultata</h1>
+      <p class="subtitle">Performans zemalja u finalima Eurosonga kroz godine.</p>
+    </header>
+
+    <section class="controls" aria-label="Filteri">
+      <div class="control">
+        <label for="metric-select">Metrika (karta &amp; stupci)</label>
+        <select id="metric-select"></select>
+      </div>
+
+      <div class="control year-range">
+        <label>
+          Raspon godina:
+          <span id="year-range-label">&mdash;</span>
+        </label>
+        <div class="dual-slider">
+          <div class="slider-track-bg"></div>
+          <input id="year-from" type="range" />
+          <input id="year-to" type="range" />
+        </div>
+      </div>
+
+      <div class="control countries">
+        <label>Označene zemlje</label>
+        <div id="selected-chips" class="chips" aria-live="polite">
+          <span class="chips-empty">klikni zemlju na karti, stupcu ili točki</span>
+        </div>
+      </div>
+
+      <button id="reset-btn" type="button" class="reset">Reset</button>
+    </section>
+
+    <main class="grid">
+      <section class="card" id="card-map">
+        <h2>Karta Europe</h2>
+        <div class="chart" id="chart-map"></div>
+      </section>
+
+      <section class="card" id="card-bar">
+        <h2>Top 8 zemalja</h2>
+        <div class="chart" id="chart-bar"></div>
+      </section>
+
+      <section class="card" id="card-line">
+        <div class="card-header">
+          <h2>Plasman kroz godine</h2>
+          <label class="toggle">
+            <input type="checkbox" id="line-only-selected" />
+            <span>Samo odabrana zemlja</span>
+          </label>
+        </div>
+        <div class="chart" id="chart-line"></div>
+      </section>
+
+      <section class="card" id="card-scatter">
+        <div class="card-header">
+          <h2>Usporedba metrika</h2>
+          <div class="scatter-tabs" role="tablist">
+            <button
+              type="button"
+              class="scatter-tab active"
+              data-mode="jt"
+              role="tab"
+              aria-selected="true"
+            >
+              Žiri vs televote
+            </button>
+            <button
+              type="button"
+              class="scatter-tab"
+              data-mode="yt"
+              role="tab"
+              aria-selected="false"
+            >
+              YouTube vs plasman
+            </button>
+          </div>
+        </div>
+        <div class="chart" id="chart-scatter"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Izvori podataka: Spijkervet/eurovision-dataset (rezultati), YouTube
+        (broj pregleda) i map-of-europe (granice). Prikazana su finala od
+        2016. do 2023.
+      </p>
+    </footer>
+
+    <div id="tooltip" class="tooltip" role="tooltip"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
