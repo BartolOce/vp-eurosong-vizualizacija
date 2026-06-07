@@ -28,9 +28,9 @@
 
 \usepackage[
   colorlinks=true,
-  linkcolor=linkblue,
+  linkcolor=black,
   urlcolor=linkblue,
-  citecolor=linkblue,
+  citecolor=black,
   pdftitle={Vizualizacija podataka --- Eurosong},
   pdfauthor={Student},
 ]{hyperref}
@@ -105,14 +105,12 @@
 {\Huge\bfseries VIZUALIZACIJA PODATAKA\par}
 
 \vspace{3cm}
-{\LARGE\bfseries Interaktivna vizualizacija rezultata\\Eurosonga 2016. – 2023.\par}
+{\LARGE\bfseries Interaktivna vizualizacija rezultata\\Eurosonga 2016.–2023.\par}
 
 \vfill
 \begin{flushleft}
 \hspace{2cm}\textbf{Student:} {[}Ime i prezime{]}\par
 \hspace{2cm}\textbf{Studij:} {[}Studij{]}\par
-\vspace{0.4cm}
-\hspace{2cm}\textbf{Mentor:} {[}Ime i prezime nastavnika{]}\par
 \end{flushleft}
 
 \vspace{2cm}
@@ -127,7 +125,7 @@
 
 \subsection{Projektni zadatak}
 
-\textbf{Naziv zadatka:} Interaktivna vizualizacija rezultata Eurosonga 2016. – 2023.
+\textbf{Naziv zadatka:} Interaktivna vizualizacija rezultata Eurosonga 2016.–2023.
 
 \textbf{Opis problema:} Eurovizijski rezultati kroz godine stvaraju velike količine podataka — bodovi žirija i publike (televote), plasmani, redoslijed nastupa, pjesme, izvođači te popularnost (npr.\ broj pregleda na YouTubeu). Tablice tih podataka teško pružaju brz uvid u trendove, najuspješnije zemlje ili veze među pojedinim pokazateljima. Cilj je objediniti više perspektiva u jedinstvenu interaktivnu vizualizaciju koja omogućuje brzo istraživanje podataka.
 
@@ -138,7 +136,7 @@
   \item omogućiti istovremeni pregled uspješnosti zemalja iz više perspektiva: geografske raspodjele, rang-ljestvice, vremenskog tijeka i korelacija
   \item dati uvid u modernu eru (od 2016.\ nadalje), u kojoj se bodovi dijele na glasove žirija i glasove publike (televote)
   \item osigurati da se projekt može besplatno objaviti kao statična stranica na servisu GitHub Pages (bez poslužiteljskog dijela)
-  \item ostvariti ponovljivu pripremu podataka — sirovi izvori i obrađene datoteke pohranjeni su u repozitoriju
+  \item osigurati neovisnost o vanjskim servisima u radu — obrađene datoteke podataka pohranjene su izravno u repozitoriju
 \end{itemize}
 
 \textbf{Poveznica na git repozitorij projekta:} \url{https://github.com/<korisnik>/<ime-repoa>}
@@ -157,7 +155,7 @@ Podatci se kombiniraju iz triju javnih izvora.
 \textbf{Broj pregleda na YouTubeu:}
 \begin{itemize}
   \item za svaku poveznicu iz prethodnog izvora broj pregleda dohvaća se parsiranjem HTML sadržaja stranice (regularnim izrazom)
-  \item vrijednost se sprema u lokalnu predmemoriju (\texttt{scripts/.cache/youtube-views.json}) te se zapisuje u konačnu datoteku \texttt{entries.json}
+  \item vrijednost se zapisuje u konačnu datoteku \texttt{entries.json}, uz lokalnu predmemoriju da se isti video ne dohvaća dvaput
 \end{itemize}
 
 \textbf{leakyMirror/map-of-europe (TopoJSON):}
@@ -169,17 +167,17 @@ Podatci se kombiniraju iz triju javnih izvora.
 
 \subsection{Obrada podataka}
 
-Obrada se odvija u Node.js skripti \texttt{scripts/build-data.js}. Koraci su sljedeći:
+Obrada je provedena lokalno (Node.js), izvan repozitorija; u njega je uključen samo gotov rezultat --- datoteka \texttt{public/data/entries.json}. Postupak obrade odvija se u sljedećim koracima:
 
 \begin{enumerate}
   \item učitavanje sirove datoteke \texttt{contestants.csv} (funkcijom \texttt{csvParse} iz paketa \texttt{d3-dsv})
   \item filtriranje: zadržavaju se samo godine $\geq 2016$ (prije 2016.\ nije postojala podjela bodova na žiri i publiku)
   \item filtriranje: redovi bez polja \texttt{place\_final} \emph{i} \texttt{place\_sf} odbacuju se (povučeni nastupi)
-  \item preslikavanje dvoslovne oznake zemlje (npr.\ ,,hr'') u ISO Alpha-3 (npr.\ ,,HRV'') pomoću statičke mape u \texttt{country-codes.js}; postoji i pričuvno preslikavanje \texttt{NAME\_TO\_ISO2} jer pojedini redovi sadrže puno ime umjesto oznake
+  \item preslikavanje dvoslovne oznake zemlje (npr.\ ,,hr'') u ISO Alpha-3 (npr.\ ,,HRV'') pomoću statičke mape oznaka; postoji i pričuvno preslikavanje punog imena zemlje u oznaku jer pojedini redovi sadrže puno ime umjesto oznake
   \item normalizacija naziva zemalja na hrvatski (npr.\ ,,Croatia'' $\to$ ,,Hrvatska'')
   \item označavanje \texttt{qualified=true} ako postoji \texttt{place\_final}, odnosno \texttt{false} ako postoji samo \texttt{place\_sf} (polufinalist koji se nije plasirao)
   \item sortiranje i zapisivanje u \texttt{public/data/entries.json}
-  \item zaseban prolaz \texttt{scripts/fetch-youtube-views.js} dohvaća broj pregleda uz ograničenje od 800\,ms između zahtjeva i upisuje vrijednost u polje \texttt{youtubeViews}
+  \item zaseban prolaz dohvaća broj pregleda s YouTubea uz ograničenje od 800\,ms između zahtjeva i upisuje vrijednost u polje \texttt{youtubeViews}
 \end{enumerate}
 
 \noindent\textbf{Rezultati obrade:}
@@ -192,9 +190,9 @@ Obrada se odvija u Node.js skripti \texttt{scripts/build-data.js}. Koraci su slj
 \textbf{Pokazatelj} & \textbf{Vrijednost} \\
 \midrule
 Ukupno nastupa & 288 (181 finalist + 107 polufinalista) \\
-Godine & 7 (2016. – 2023., 2020.\ otkazana) \\
-Različitih zemalja & 45 \\
-Brojeva pregleda na YouTubeu & 276 (za 12 nije dohvaćeno) \\
+Godine & 7 (2016.–2023., 2020.\ otkazana) \\
+Različitih zemalja & 44 \\
+Dohvaćenih YouTube pregleda & 276 (za 12 nije dohvaćeno) \\
 Veličina \texttt{entries.json} & 83 kB \\
 Veličina \texttt{europe.topo.json} & 192 kB \\
 \bottomrule
@@ -218,13 +216,15 @@ Razmatrane su četiri komplementarne vrste prikaza, od kojih svaka pokriva razli
 
 \subsection{Pitanja na koja vizualizacija daje odgovor}
 
+Vizualizacija je oblikovana tako da odgovori na nekoliko konkretnih pitanja o rezultatima Eurosonga u promatranom razdoblju:
+
 \begin{itemize}
   \item Koje zemlje prevladavaju na Eurosongu u ovoj eri (od 2016.\ nadalje)?
   \item Kako se uspješnost pojedine zemlje mijenja kroz godine?
-  \item Postoji li geografski uzorak — preferiraju li određene regije određene zemlje?
+  \item Postoji li geografski uzorak u uspješnosti — iz kojih regija Europe dolaze najuspješnije zemlje?
   \item Koliko je glasanje žirija usklađeno s glasanjem publike (televote)?
   \item Postoji li veza između broja pregleda nastupa na YouTubeu i njegova konačnog plasmana?
-  \item Koje se zemlje najčešće nisu plasirale u finale i koja im je godina bila najuspješnija?
+  \item Koje godine pojedine zemlje nisu prošle u finale (DNQ), a koja im je bila najuspješnija?
 \end{itemize}
 
 \subsection{Skica vizualizacije podataka}
@@ -259,7 +259,7 @@ Slična rješenja koja su poslužila kao referenca tijekom dizajna:
 Konkretni dijelovi koda korišteni kao polazište:
 
 \begin{itemize}
-  \item \texttt{d3.geoMercator()} i \texttt{path.bounds(feature)} --- prema kodu iz priručnika kolegija (poglavlje Projekcije) za učitavanje TopoJSON zapisa i stvaranje SVG putanja
+  \item \texttt{d3.geoMercator()}, \texttt{projection.fitSize()} i \texttt{d3.geoPath()} --- prema kodu iz priručnika kolegija (poglavlje Projekcije) za učitavanje TopoJSON zapisa, uklapanje karte u okvir i stvaranje SVG putanja
   \item \texttt{d3.scaleSequential(d3.interpolateOrRd)} --- standardni D3 obrazac za choropleth (promijenjen iz \texttt{interpolateYlOrRd} radi boljeg kontrasta na svijetloj pozadini)
   \item animacija crtanja linije pomoću svojstva \texttt{stroke-dashoffset} --- uobičajeni D3 idiom za ,,iscrtavanje'' linije
 \end{itemize}
@@ -306,10 +306,10 @@ Godina se referencira poljem \texttt{year} (broj), a zemlja poljem \texttt{count
 \texttt{--accent} & \#EA580C (narančasta) & stupci, isticanje, glavna oznaka \\
 \texttt{--accent-2} & \#1D4ED8 (plava) & označena zemlja na stupčastom dijagramu \\
 \texttt{--text} & \#1C1917 & glavni tekst \\
-\texttt{--muted} & \#5B6473 & osi, sekundarni tekst \\
+\texttt{--muted} & \#6B6967 & osi, sekundarni tekst \\
 \texttt{--no-data} & \#D8DDE5 & zemlje bez podataka na karti \\
 \texttt{interpolateOrRd} & krem $\to$ tamnocrvena & gradijent choropleth karte \\
-\texttt{schemeTableau10} & 10 različitih boja & po jedna boja po zemlji (stalna u svim prikazima) \\
+\texttt{schemeTableau10} & 10 osnovnih + dodatne & jedinstvena, stalna boja po zemlji \\
 \bottomrule
 \end{tabular}
 \caption{Oznake boja i njihovo korištenje.}
@@ -319,7 +319,7 @@ Boje su odabrane prema trima prioritetima:
 
 \begin{enumerate}
   \item vidljivost na svijetloj pozadini --- odbačena je hladna paleta i odabrana topla narančasta koja ima dobar kontrast s krem pozadinom
-  \item raspoznatljivost --- paleta \texttt{schemeTableau10} sadrži 10 perceptivno različitih boja, dovoljno za top 8 zemalja i dvije dodatno označene
+  \item raspoznatljivost --- najistaknutijih deset zemalja koristi perceptivno različite boje palete \texttt{schemeTableau10}, a ostale dobivaju dodatne razmaknute nijanse (po zlatnom kutu) tako da svaka zemlja ima jedinstvenu boju
   \item dosljednost --- ista boja zemlje koristi se u linijskom dijagramu, dijagramu raspršenja i oznakama (ne mijenja se pri promjeni filtra)
 \end{enumerate}
 
@@ -328,7 +328,7 @@ Boje su odabrane prema trima prioritetima:
 
 \subsection{Osnovne funkcionalnosti i ponašanja}
 
-Identificirane osnovne funkcionalnosti:
+Za prototip su identificirane sljedeće osnovne funkcionalnosti:
 
 \begin{itemize}
   \item učitavanje podataka iz statičkih JSON datoteka u mapi \texttt{public/data/}
@@ -340,16 +340,11 @@ Identificirane osnovne funkcionalnosti:
   \item gumbi za prebacivanje između dvaju načina dijagrama raspršenja
 \end{itemize}
 
-Osnovna ponašanja:
-
-\begin{itemize}
-  \item sva četiri prikaza dijele isto reaktivno stanje --- promjena u kontrolnoj traci odmah se odražava
-  \item klik na zemlju u bilo kojem prikazu osvježava sve ostale
-  \item klizači imaju zaštitu od preklapanja --- najmanji razmak je dvije godine
-  \item stupčasti se dijagram preraspoređuje uz postupnu animaciju (kašnjenje 35\,ms po rednom broju stupca)
-\end{itemize}
+Osnovna ponašanja proizlaze iz zajedničkog stanja: sva četiri prikaza dijele isto reaktivno stanje, pa se svaka promjena u kontrolnoj traci i svaki klik na zemlju u bilo kojem prikazu odmah odražavaju na ostalim prikazima. Klizači raspona godina zaštićeni su od preklapanja najmanjim razmakom od dvije godine, a stupčasti se dijagram pri promjeni preraspoređuje uz postupnu animaciju s kašnjenjem od 35\,ms po rednom broju stupca.
 
 \subsection{Napredne funkcionalnosti i ponašanja}
+
+Uz osnovne, predviđen je i niz naprednih funkcionalnosti koje omogućuju dublju analizu i precizniju interakciju:
 
 \begin{itemize}
   \item odabir više zemalja istovremeno (oznake) --- svaka u svojoj boji
@@ -434,18 +429,12 @@ setState({ selectedCountries: toggleSelected(d.countryCode) });
 
 \subsection{Implementacija osnovnih funkcionalnosti}
 
-U konačnoj su verziji dovršene sve osnovne funkcionalnosti. Dodatno je uvedeno:
-
-\begin{itemize}
-  \item prilagodba za mobilne uređaje --- prikazi su prilagođeni za širinu zaslona $< 980$\,px, klizač ima veći klizni element radi dodira (22\,px), a kontrole zauzimaju punu širinu
-  \item najmanji razmak od dvije godine --- oba klizača dijele isti raspon, a vrijednost se pri pomicanju ograničava tako da se klizni elementi ne mogu preklopiti
-  \item automatsko uključivanje označene zemlje u stupčasti i linijski prikaz ako nije u prikazanom skupu --- dodaje se na dno
-\end{itemize}
+U konačnoj su verziji dovršene sve osnovne funkcionalnosti te su uvedene tri dodatne dorade. Prikaz je prilagođen mobilnim uređajima: ispod 980\,px prelazi u jedan stupac, a na užim zaslonima (ispod 640\,px) klizač dobiva veći klizni element radi dodira (22\,px), dok kontrole zauzimaju punu širinu. Oba klizača raspona godina dijele isti raspon, a vrijednost se pri pomicanju ograničava tako da se klizni elementi ne mogu preklopiti i time čuva najmanji razmak od dvije godine. Naposljetku, označena zemlja koja nije u prikazanom skupu automatski se uključuje u stupčasti i linijski prikaz, dodana na dno.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{line}
-  \caption{Linijski dijagram --- plasmani top 5 zemalja kroz 2016. – 2023. Sive točke označavaju godine bez plasmana u finalu (red ,,drugo'').}
+  \caption{Linijski dijagram --- plasmani top 5 zemalja kroz 2016.–2023. Sive točke označavaju godine bez plasmana u finalu (red ,,drugo'').}
 \end{figure}
 
 \subsection{Implementacija osnovnog ponašanja}
@@ -475,7 +464,7 @@ Time se uklanja zaobilazna komunikacija preko globalnih varijabli i postiže jed
 
 \subsubsection*{Poseban red ,,drugo'' u linijskom prikazu}
 
-Y-skala se ne ograničava na \texttt{maxPlace} ($\sim$25), nego se proširuje za \texttt{DNQ\_PAD} (dvije jedinice). Posebna vrijednost na osi, \texttt{dnqRow = maxPlace + 2}, prikazuje se oznakom ,,drugo'' umjesto broja. Točke za nastupe bez plasmana crtaju se na tom položaju, ostajući unutar grafa:
+Y-skala se ne ograničava na \texttt{maxPlace} (do 26), nego se proširuje za \texttt{DNQ\_PAD} (dvije jedinice). Posebna vrijednost na osi, \texttt{dnqRow = maxPlace + 2}, prikazuje se oznakom ,,drugo'' umjesto broja. Točke za nastupe bez plasmana crtaju se na tom položaju, ostajući unutar grafa:
 
 \begin{lstlisting}
 const dnqRow = maxPlace + DNQ_PAD;
@@ -524,14 +513,14 @@ const MODES: Record<ScatterMode, ScatterConfig> = {
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{scatter}
-  \caption{Dijagram raspršenja --- bodovi žirija (x) naspram bodova publike (y) za sve finaliste 2016. – 2023.}
+  \caption{Dijagram raspršenja --- bodovi žirija (x) naspram bodova publike (y) za sve finaliste 2016.–2023.}
 \end{figure}
 
 \subsection{Implementacija naprednog ponašanja}
 
 \subsubsection*{Animirano crtanje linija}
 
-Pri svakoj promjeni metrike linije se ponovno iscrtavaju slijeva nadesno. Točke se prve postave (\texttt{POINT\_REVEAL\_MS} = 380\,ms), a zatim uz odgodu kreće animacija svojstva \texttt{stroke-dashoffset} (\texttt{LINE\_DELAY\_MS} = 320\,ms, \texttt{LINE\_DRAW\_MS} = 1300\,ms). Poziv \texttt{interrupt()} prekida tekuću animaciju ako korisnik brzo mijenja metrike:
+Kada se linija prvi put pojavi u prikazu --- kad zemlja uđe u prikazani skup (npr.\ nakon promjene metrike ili raspona godina) ili kad je korisnik označi izvan trenutnog prikaza --- iscrtava se slijeva nadesno; već prikazane linije ostaju na mjestu i ne animiraju se ponovno. Točke se prve postave (\texttt{POINT\_REVEAL\_MS} = 380\,ms), a zatim uz odgodu kreće animacija svojstva \texttt{stroke-dashoffset} (\texttt{LINE\_DELAY\_MS} = 320\,ms, \texttt{LINE\_DRAW\_MS} = 1300\,ms). Poziv \texttt{interrupt()} prekida tekuću animaciju ako se prikaz osvježi prebrzo:
 
 \begin{lstlisting}
 allLines.each(function () {
@@ -577,8 +566,8 @@ Tijekom završne faze projekta napravljene su sljedeće preinake:
   \item prelazak na TypeScript --- sve datoteke u \texttt{src/} prevedene su iz \texttt{.js} u \texttt{.ts} uz domenske tipove (\texttt{Entry}, \texttt{AppState}, \texttt{MetricKey}, \texttt{AggregateMetric} i dr.)
   \item preoblikovanje načina dijagrama raspršenja na model vođen stanjem --- uklonjena je globalna varijabla \texttt{window.\_\_setScatterMode}, a jedinstveni izvor istine postaje \texttt{state.scatterMode}
   \item čišćenje stanja --- uklonjena su neiskorištena polja iz ranije inačice s približavanjem karte
-  \item konfiguracija alata ESLint i Prettier za provjeru stila i kvalitete koda
-  \item pohrana sirovih podataka u repozitorij --- mapa \texttt{scripts/.cache/} sa CSV-om, TopoJSON zapisom i predmemorijom pregleda izuzeta je iz \texttt{.gitignore} datoteke tako da projekt radi i bez internetske veze
+  \item ujednačavanje stila koda --- dosljedno formatiranje i imenovanja kroz sve module
+  \item potpuna neovisnost o vanjskim servisima u radu --- svi su podatci unaprijed obrađeni i pohranjeni kao statične JSON datoteke u \texttt{public/data/}, pa aplikacija radi i bez internetske veze
   \item dodavanje favikona (SVG) i meta-opisa za karticu preglednika i pretpregled pri dijeljenju
   \item dodavanje pristupačnih oznaka (\texttt{role="img"}, \texttt{aria-label}) na sve SVG prikaze radi podrške čitačima zaslona
   \item dodavanje JSDoc komentara na ključne izvezene funkcije
@@ -606,6 +595,7 @@ github-projekt/
 |   |-- types.ts               domenski tipovi
 |   |-- metrics.ts             definicije metrika + agregacije
 |   |-- tooltip.ts             skocni opis
+|   |-- colors.ts              stalna paleta boja po zemlji
 |   |-- styles.css
 |   `-- charts/
 |       |-- map.ts             choropleth karta
@@ -621,13 +611,13 @@ Napomena: skripte za pripremu podataka (\texttt{scripts/}) ne nalaze se u repozi
 \subsubsection*{Popis korištenih tehnologija}
 
 \begin{itemize}
-  \item D3.js v7 (vizualizacijski sloj)
-  \item TopoJSON (kompaktan geografski zapis)
-  \item TypeScript (strogi način rada)
-  \item Vite (razvojni poslužitelj i alat za izradu)
-  \item Node.js (skripte za pripremu podataka)
-  \item GitHub Actions (automatizacija izrade i objave)
-  \item GitHub Pages (besplatno posluživanje)
+  \item D3.js v7
+  \item TopoJSON
+  \item TypeScript
+  \item Vite
+  \item Node.js
+  \item GitHub Actions
+  \item GitHub Pages
 \end{itemize}
 
 \subsubsection*{Upute za postavljanje}
@@ -665,7 +655,7 @@ npm run preview      # lokalni pregled produkcijske izrade
 
 \begin{itemize}
   \item Metrika --- odabire se metrika koja se primjenjuje na kartu i stupčasti dijagram
-  \item Raspon godina --- povlačenjem klizača sužava se raspon; najmanji razmak je dvije godine (npr.\ 2016. – 2018.)
+  \item Raspon godina --- povlačenjem klizača sužava se raspon; najmanji razmak je dvije godine (npr.\ 2016.–2018.)
   \item Označene zemlje --- prikazuju se kao oznake nakon klika na zemlju; gumb ,,$\times$'' uklanja oznaku
   \item Poništavanje --- vraća sve filtre na početne vrijednosti
 \end{itemize}
@@ -700,22 +690,6 @@ npm run preview      # lokalni pregled produkcijske izrade
 
 \textbf{Poveznica na git repozitorij projekta:} \url{https://github.com/<korisnik>/<ime-repoa>}
 
-Programski je kod strukturiran u modulima:
-
-\begin{itemize}
-  \item \texttt{src/main.ts} --- ulazna točka aplikacije
-  \item \texttt{src/state.ts} --- reaktivno stanje
-  \item \texttt{src/types.ts} --- domenski tipovi
-  \item \texttt{src/metrics.ts} --- definicije metrika
-  \item \texttt{src/tooltip.ts} --- zajednički skočni opis
-  \item \texttt{src/charts/map.ts} --- choropleth karta
-  \item \texttt{src/charts/bar.ts} --- stupčasti dijagram
-  \item \texttt{src/charts/line.ts} --- linijski dijagram
-  \item \texttt{src/charts/scatter.ts} --- dijagram raspršenja
-  \item \texttt{scripts/build-data.js} --- priprema datoteke \texttt{entries.json}
-  \item \texttt{scripts/fetch-youtube-views.js} --- dohvat broja pregleda
-\end{itemize}
-
-Ukupno približno 3100 redaka izvornog koda. Detaljan pregled koda dostupan je u javnom GitHub repozitoriju.
+Cjelovit programski kod (TypeScript, $\sim$2600 redaka) dostupan je u javnom GitHub repozitoriju. Organizacija koda po modulima i uloga svake pojedine datoteke prikazani su ranije, u prikazu hijerarhije projekta (poglavlje KV5).
 
 \end{document}

@@ -23,9 +23,15 @@ type LegendArgs = [
 /**
  * Choropleth karta Europe — boja zemlje skalirana po odabranoj metrici.
  * Klik na zemlju s podacima toggla selekciju (sve preko zajedničkog state-a).
+ *
+ * Izvor obrasca: D3 choropleth (Observable D3, https://observablehq.com/@d3;
+ * Bostockov primjer choropleth karte) — geoMercator + fitSize + geoPath za
+ * projekciju te scaleSequential(interpolateOrRd) za skalu boja.
  */
 export function createMap(container: HTMLElement, ctx: ChartContext): ChartHandle {
   const { entries, topology } = ctx;
+  // Granice država: TopoJSON iz leakyMirror/map-of-europe
+  // (https://github.com/leakyMirror/map-of-europe); id polje = ISO Alpha-2 oznaka.
   const topo = topology as unknown as Topology;
   const featureCollection = topojson.feature(
     topo,
@@ -64,6 +70,9 @@ export function createMap(container: HTMLElement, ctx: ChartContext): ChartHandl
   let lastLegend: LegendArgs | null = null;
 
   function fitProjection(): void {
+    // viewBox mora pratiti veličinu na koju je projekcija fitana — inače se pri
+    // resizeu (redraw) projekcija i viewBox raziđu pa karta ode izvan okvira.
+    svg.attr('viewBox', `0 0 ${size.width} ${size.height}`);
     projection.fitSize([size.width, size.height], featureCollection);
     path = d3.geoPath(projection);
   }
@@ -74,7 +83,6 @@ export function createMap(container: HTMLElement, ctx: ChartContext): ChartHandl
   }
 
   function draw(): void {
-    svg.attr('viewBox', `0 0 ${size.width} ${size.height}`);
     const sel = gCountries
       .selectAll<SVGPathElement, CountryFeature>('path.country')
       .data(featureCollection.features as CountryFeature[], (d) => d.id);

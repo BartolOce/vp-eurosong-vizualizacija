@@ -5,3 +5,11 @@ dist/
 *.log
 .env
 .env.*
+
+# LaTeX build artefakti (docs/seminar.tex se prevodi lokalno)
+docs/*.aux
+docs/*.out
+docs/*.toc
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz

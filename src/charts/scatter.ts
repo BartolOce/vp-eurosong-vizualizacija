@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { showTooltip, hideTooltip } from '../tooltip.js';
 import { setState, toggleSelected } from '../state.js';
+import { countryColor as color } from '../colors.js';
 import type {
   AppState,
   ChartContext,
@@ -45,8 +46,6 @@ interface ScatterDatum {
 export function createScatter(container: HTMLElement, ctx: ChartContext): ChartHandle {
   const { entries } = ctx;
   let cfg: ScatterConfig = resolveConfig('jt');
-
-  const color = d3.scaleOrdinal<string>(d3.schemeTableau10);
 
   const svg = d3
     .select(container)
@@ -227,12 +226,20 @@ export function createScatter(container: HTMLElement, ctx: ChartContext): ChartH
 
   function onHover(event: MouseEvent, d: ScatterDatum): void {
     const { xKey, yKey, xLabel, yLabel } = cfg;
+    // Plasman u finalu prikazuje se u skočnom opisu i kad nije na osi (mod žiri
+    // vs televote), jednako kao u modu YouTube vs plasman gdje je na y-osi.
+    const placeOnAxis = xKey === 'place' || yKey === 'place';
+    const placeLine =
+      !placeOnAxis && d.e.place != null
+        ? `<br/>Plasman u finalu: <strong>${d.e.place}.</strong>`
+        : '';
     showTooltip(
       `<strong>${d.e.country} &mdash; ${d.e.year}</strong><br/>` +
         `${d.e.performer ?? ''}<br/>` +
         `<em>${d.e.song ?? ''}</em><br/>` +
         `${xLabel}: <strong>${formatVal(xKey, d.x)}</strong><br/>` +
-        `${yLabel}: <strong>${formatVal(yKey, d.y)}</strong>`,
+        `${yLabel}: <strong>${formatVal(yKey, d.y)}</strong>` +
+        placeLine,
       event,
     );
   }

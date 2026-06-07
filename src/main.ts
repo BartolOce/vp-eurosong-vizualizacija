@@ -2,6 +2,7 @@
 import * as d3 from 'd3';
 import { getState, setState, subscribe, toggleSelected } from './state.js';
 import { AGGREGATE_METRICS } from './metrics.js';
+import { initCountryColors, countryColor } from './colors.js';
 import { createMap } from './charts/map.js';
 import { createBar } from './charts/bar.js';
 import { createLine } from './charts/line.js';
@@ -16,8 +17,6 @@ import type {
   ScatterMode,
 } from './types.js';
 
-const COUNTRY_COLOR = d3.scaleOrdinal<string>(d3.schemeTableau10);
-
 async function main(): Promise<void> {
   window.addEventListener('mousemove', (e) => moveTooltip(e));
 
@@ -29,6 +28,11 @@ async function main(): Promise<void> {
   let entries: Entry[] | undefined;
   let topology: EuropeTopology | undefined;
   try {
+    // Izvori podataka (obrađeni offline, pohranjeni u public/data/):
+    //  - entries.json: rezultati iz Spijkervet/eurovision-dataset
+    //    (https://github.com/Spijkervet/eurovision-dataset) + broj pregleda s YouTubea
+    //  - europe.topo.json: granice država (TopoJSON) iz leakyMirror/map-of-europe
+    //    (https://github.com/leakyMirror/map-of-europe)
     [entries, topology] = await Promise.all([
       d3.json<Entry[]>(`${import.meta.env.BASE_URL}data/entries.json`),
       d3.json<EuropeTopology>(`${import.meta.env.BASE_URL}data/europe.topo.json`),
@@ -40,7 +44,7 @@ async function main(): Promise<void> {
       const el = document.getElementById(id);
       if (el)
         el.innerHTML =
-          '<div class="loading">Greška kod učitavanja podataka. Pokreni <code>npm run build:data</code>.</div>';
+          '<div class="loading">Greška kod učitavanja podataka iz <code>public/data/</code>.</div>';
     }
     return;
   }
@@ -49,6 +53,7 @@ async function main(): Promise<void> {
 }
 
 function bootstrap(entries: Entry[], topology: EuropeTopology): void {
+  initCountryColors(entries);
   const years = Array.from(new Set(entries.map((e) => e.year))).sort((a, b) => a - b);
   const yearMin = years[0];
   const yearMax = years[years.length - 1];
@@ -193,7 +198,7 @@ function initChips(countries: [string, string][]): void {
       .map(
         (code) => `
         <span class="chip" data-code="${code}">
-          <span class="chip-color" style="background:${COUNTRY_COLOR(code)}"></span>
+          <span class="chip-color" style="background:${countryColor(code)}"></span>
           ${nameOf.get(code) ?? code}
           <button type="button" data-remove="${code}" aria-label="Ukloni">×</button>
         </span>`,

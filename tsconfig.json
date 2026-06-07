@@ -17,5 +17,5 @@
     "allowJs": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "scripts", "public"]
+  "exclude": ["node_modules", "dist", "public"]
 }

@@ -2,14 +2,13 @@ import * as d3 from 'd3';
 import { showTooltip, hideTooltip } from '../tooltip.js';
 import { setState, toggleSelected } from '../state.js';
 import { AGGREGATE_METRICS, aggregateByCountry } from '../metrics.js';
+import { countryColor as color } from '../colors.js';
 import type { AppState, ChartContext, ChartHandle, Entry } from '../types.js';
 
 const MARGIN = { top: 12, right: 16, bottom: 26, left: 50 };
 const TOP_COUNTRIES = 5; // manje od bar charta (8) za bolju čitljivost
 const SKIP_YEARS = new Set<number>([2020]); // Eurovision 2020 otkazan (COVID)
 const DNQ_PAD = 2; // koliko jedinica ispod maxPlace rezerviramo za "drugo" red
-
-const color = d3.scaleOrdinal<string>(d3.schemeTableau10);
 
 type NodeKind = 'qualified' | 'dnq' | 'absent';
 interface SeriesNode {
@@ -83,8 +82,6 @@ export function createLine(container: HTMLElement, ctx: ChartContext): ChartHand
   let size = measure();
   let currentState: AppState | null = null;
   let lastWidth = size.width;
-  // Odabir iz prethodnog renderiranja — za detekciju koja je zemlja tek dodana
-  let prevSelected = new Set<string>();
 
   const ro = new ResizeObserver(() => {
     size = measure();
@@ -233,13 +230,8 @@ export function createLine(container: HTMLElement, ctx: ChartContext): ChartHand
 
     const hasSelection = state.selectedCountries.size > 0;
 
-    // Zemlje DODANE u odabir od zadnjeg renderiranja — samo se njihove linije
-    // (ponovno) animiraju. Sve ostale već prikazane linije ostaju na mjestu.
-    const newlySelected = new Set(
-      [...state.selectedCountries].filter((c) => !prevSelected.has(c)),
-    );
-
-    // Animacija crtanja linije slijeva-nadesno (stroke-dashoffset reveal).
+    // Animacija crtanja linije slijeva-nadesno preko stroke-dashoffset — uobičajeni
+    // D3 idiom za "iscrtavanje" linije (Observable D3, https://observablehq.com/@d3).
     const animateDraw = (
       sel: d3.Selection<SVGPathElement, Series, SVGGElement, unknown>,
     ): void => {
@@ -267,18 +259,10 @@ export function createLine(container: HTMLElement, ctx: ChartContext): ChartHand
       .attr('d', (d) => line(d.nodes));
     animateDraw(linesEnter);
 
-    // UPDATE — tek odabrana zemlja koja je VEĆ bila prikazana (npr. u top 5):
-    // postavi putanju odmah pa animiraj reveal.
-    const updNewly = lines.filter((d) => newlySelected.has(d.countryCode));
-    updNewly
-      .attr('stroke', (d) => color(d.countryCode))
-      .attr('d', (d) => line(d.nodes));
-    animateDraw(updNewly);
-
-    // UPDATE — ostale postojeće linije: ostaju na mjestu, samo glatko ažuriranje
-    // putanje/boje (npr. kod promjene raspona godina), bez ponovnog crtanja.
+    // UPDATE — sve već prikazane linije ostaju na mjestu uz glatko ažuriranje
+    // putanje/boje (npr. kod promjene raspona godina). Odabir VEĆ prikazane
+    // linije NE pokreće ponovno crtanje — mijenja joj se samo isticanje (klasa).
     lines
-      .filter((d) => !newlySelected.has(d.countryCode))
       .interrupt('line-draw')
       .attr('stroke-dasharray', null)
       .attr('stroke-dashoffset', null)
@@ -296,9 +280,6 @@ export function createLine(container: HTMLElement, ctx: ChartContext): ChartHand
         'dim',
         (d) => hasSelection && !state.selectedCountries.has(d.countryCode),
       );
-
-    // Zapamti odabir za sljedeće renderiranje (detekcija novih u idućem pozivu).
-    prevSelected = new Set(state.selectedCountries);
 
     const allPoints: PointDatum[] = series.flatMap((s) =>
       s.nodes
