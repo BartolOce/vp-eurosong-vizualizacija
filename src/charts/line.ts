@@ -82,10 +82,17 @@ export function createLine(container: HTMLElement, ctx: ChartContext): ChartHand
 
   let size = measure();
   let currentState: AppState | null = null;
+  let lastWidth = size.width;
 
   const ro = new ResizeObserver(() => {
     size = measure();
-    if (currentState) update(currentState);
+    // Re-renderiramo samo na promjenu ŠIRINE. Vertikalne promjene dolaze od
+    // legende (chips) ispod grafa pri odabiru zemlje; one ne smiju okidati
+    // ponovni update jer bi prekinule animaciju crtanja tek dodane linije.
+    if (currentState && Math.abs(size.width - lastWidth) > 0.5) {
+      lastWidth = size.width;
+      update(currentState);
+    }
   });
   ro.observe(svgWrap);
 
@@ -224,23 +231,15 @@ export function createLine(container: HTMLElement, ctx: ChartContext): ChartHand
 
     const hasSelection = state.selectedCountries.size > 0;
 
-    // Enter i update tretiramo identično da se sve linije uvijek re-animiraju
-    const allLines = linesEnter.merge(lines);
-
-    allLines
+    // ENTER: samo nove linije (npr. tek odabrana zemlja) animiraju crtanje
+    // slijeva-nadesno. Već prikazane linije se NE diraju.
+    linesEnter
       .attr('stroke', (d) => color(d.countryCode))
-      .classed('selected', (d) => state.selectedCountries.has(d.countryCode))
-      .classed(
-        'dim',
-        (d) => hasSelection && !state.selectedCountries.has(d.countryCode),
-      )
       .attr('d', (d) => line(d.nodes))
       .each(function () {
         const len = this.getTotalLength();
         const sel = d3.select(this);
-        // interrupt() poništava in-flight tranziciju (brza promjena metrike)
         sel
-          .interrupt('line-draw')
           .attr('stroke-dasharray', `${len} ${len}`)
           .attr('stroke-dashoffset', len)
           .transition('line-draw')
@@ -253,6 +252,27 @@ export function createLine(container: HTMLElement, ctx: ChartContext): ChartHand
           LINE_DELAY_MS + LINE_DRAW_MS + 50,
         );
       });
+
+    // UPDATE: postojeće linije ostaju na mjestu — glatko ažuriranje putanje/boje
+    // (npr. kod promjene raspona godina), bez ponovne animacije crtanja.
+    lines
+      .interrupt('line-draw')
+      .attr('stroke-dasharray', null)
+      .attr('stroke-dashoffset', null)
+      .transition()
+      .duration(400)
+      .ease(d3.easeCubicOut)
+      .attr('stroke', (d) => color(d.countryCode))
+      .attr('d', (d) => line(d.nodes));
+
+    // Klase (selected/dim) primjenjuju se odmah na sve linije
+    linesEnter
+      .merge(lines)
+      .classed('selected', (d) => state.selectedCountries.has(d.countryCode))
+      .classed(
+        'dim',
+        (d) => hasSelection && !state.selectedCountries.has(d.countryCode),
+      );
 
     const allPoints: PointDatum[] = series.flatMap((s) =>
       s.nodes
